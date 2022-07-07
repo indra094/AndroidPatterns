@@ -76,10 +76,15 @@ public class EditContactActivity extends AppCompatActivity {
         }
 
         if (isUniqueContact(username_str, email_str, contact)) {
-            contact.setEmail(email_str);
-            contact.setUsername(username_str);
-            //contact_list.deleteContact();
-            contact_list.saveContacts(context);
+
+            // Edit item
+            EditContactCommand edit_item_command = new EditContactCommand(contact_list, contact, username_str, email_str, context);
+            edit_item_command.execute();
+
+            boolean success = edit_item_command.isExecuted();
+            if (!success){
+                return;
+            }
 
             // End EditContactActivity
             //Intent intent = new Intent(this, ContactsActivity.class);
@@ -115,8 +120,13 @@ public class EditContactActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
             return;
         }
-        contact_list.deleteContact(contact);
-        contact_list.saveContacts(context);
+        DeleteContactCommand edit_item_command = new DeleteContactCommand(contact_list, contact, context);
+        edit_item_command.execute();
+
+        boolean success = edit_item_command.isExecuted();
+        if (!success){
+            return;
+        }
 
         // End EditContactActivity
         Intent intent = new Intent(this, ContactsActivity.class);

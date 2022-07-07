@@ -67,10 +67,15 @@ public class AddContactActivity extends AppCompatActivity {
         if(isUniqueContact(username_str, email_str)) {
             Contact contact = new Contact(username_str, email_str, null);
 
-            contact_list.addContact(contact);
-            contact_list.saveContacts(context);
+            AddContactCommand add_contact_command = new AddContactCommand(contact_list, contact, context);
+            add_contact_command.execute();
 
-            // End AddItemActivity
+            boolean success = add_contact_command.isExecuted();
+            if (!success){
+                return;
+            }
+
+            // End AddContactActivity
             Intent intent = new Intent(this, ContactsActivity.class);
             startActivity(intent);
             Log.v("tag", "reached here");

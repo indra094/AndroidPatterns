@@ -79,7 +79,7 @@ public class ContactList {
             contacts = new ArrayList<Contact>();
         }
     }
-    public void saveContacts(Context context) {
+    public boolean saveContacts(Context context) {
         try {
             FileOutputStream outputStream = context.openFileOutput(FILENAME, 0);
             OutputStreamWriter streamWriter = new OutputStreamWriter(outputStream);
@@ -89,9 +89,12 @@ public class ContactList {
             outputStream.close();
         } catch (FileNotFoundException err) {
             err.printStackTrace();
+            return false;
         } catch (IOException err) {
             err.printStackTrace();
+            return false;
         }
+        return true;
     }
 
     public boolean isUsernameAvailable(String username) {
