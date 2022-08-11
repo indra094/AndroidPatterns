@@ -1,0 +1,14 @@
+Code Smells present:
+
+Smell 1:
+Data class
+
+Dimensions class has only getters and setters. Though it is a good class to keep to wrap around length, width and height, it should also contain some other related functionality.
+However, it is not even being used because the way the dimensions were being used were not handled by this class. This further makes it important that this class have more functionality attached to it. 
+The problem this could have in the future is that for any additional functionality, we could probably create some function at an incorrect place which likely should have been present in the data class. In other words, it makes it difficult to add new functionality as in which class this functionality should be present in or what functions it should use.
+
+
+Smell 2:
+God class
+
+EditItemActivity class has way too many variables present. The problem with this is that it makes it difficult to understand what the class is for exactly, and it also makes the class have poor readability. This also shows that there is a lot of potential for making up new classes which wrap up many variables. Such as a EditItemUI class? Which could probably have all the UI elements of this class. This reduces the maintainability of the class and makes it difficult to keep track of things in the future. Maybe someone would like to add a related field in the future. They would simply add it to this class and this class would grow even further. This should be avoided and smaller classes should be created to wrap around linked variables.

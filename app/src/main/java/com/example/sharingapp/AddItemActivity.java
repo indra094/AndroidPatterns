@@ -23,7 +23,7 @@ public class AddItemActivity extends AppCompatActivity {
     private EditText height;
 
     private ImageView photo;
-    private Bitmap image;
+    private Bitmap image;//Smell: unitialized variable
     private int REQUEST_CODE = 1;
 
     private ItemList item_list = new ItemList();

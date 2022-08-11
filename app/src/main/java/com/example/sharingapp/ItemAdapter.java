@@ -30,7 +30,7 @@ public class ItemAdapter extends ArrayAdapter<Item> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
+        //Smell: long method
         // getItem(position) gets the "item" at "position" in the "items" ArrayList
         // (where "items" is a parameter in the ItemAdapter creator as seen above ^^)
         Item item = getItem(position);

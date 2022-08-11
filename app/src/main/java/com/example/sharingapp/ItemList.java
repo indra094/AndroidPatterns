@@ -77,7 +77,7 @@ public class ItemList extends Observable{
     }
 
     public void loadItems(Context context) {
-
+        //Smell: Poor commenting
         try {
             FileInputStream fis = context.openFileInput(FILENAME);
             InputStreamReader isr = new InputStreamReader(fis);

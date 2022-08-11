@@ -4,7 +4,7 @@ package com.example.sharingapp;
  * Dimensions class
  */
 public class Dimensions {
-
+    //Smell: Data class
     private String length;
     private String width;
     private String height;

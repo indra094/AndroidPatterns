@@ -22,6 +22,8 @@ import android.widget.TextView;
  */
 public class EditItemActivity extends AppCompatActivity implements Observer {
 
+    //Smell: Many vars
+    //Smell: Shotgun surgery
     private ItemList item_list = new ItemList();
     private ItemListController item_list_controller = new ItemListController(item_list);
 
@@ -227,6 +229,7 @@ public class EditItemActivity extends AppCompatActivity implements Observer {
      * Only need to update the view from the onCreate method
      */
     public void update() {
+        //Smell: long method
         if (on_create_update){
             adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item,
                     contact_list_controller.getAllUsernames());

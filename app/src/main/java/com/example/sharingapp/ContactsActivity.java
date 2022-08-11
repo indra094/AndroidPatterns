@@ -28,10 +28,11 @@ public class ContactsActivity extends AppCompatActivity implements Observer {
     private ItemListController item_list_controller = new ItemListController(item_list);
 
     private ListView my_contacts;
-    private ArrayAdapter<Contact> adapter;
+    private ArrayAdapter<Contact> adapter;//Smell: unitialized
     private Context context;
 
     protected void onCreate(Bundle savedInstanceState) {
+        //Smell: long method
         super.onCreate(savedInstanceState);
         setContentView(R.layout.all_contacts_fragment);
 

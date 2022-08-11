@@ -11,7 +11,7 @@ import java.util.UUID;
 public class Contact extends Observable implements Parcelable {
     private String username;
     private String email;
-    private String id;
+    private String id;//Smell: uninitialized var
 
     public Contact(String username, String email, String id) {
 

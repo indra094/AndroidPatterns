@@ -20,7 +20,7 @@ public abstract class ItemsFragment extends Fragment implements Observer {
 
     private ItemList item_list = new ItemList();
     ItemListController item_list_controller = new ItemListController(item_list);
-
+    //Smell: uninitialized vars
     View rootView;
     private ListView list_view;
     private ArrayAdapter<Item> adapter;
