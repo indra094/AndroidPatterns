@@ -4,15 +4,17 @@ import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.util.UUID;
 
-public class Contact implements Parcelable {
+public class Contact extends Observable implements Parcelable {
     private String username;
     private String email;
     private String id;
 
     public Contact(String username, String email, String id) {
+
         this.username = username;
         this.email = email;
 
@@ -25,16 +27,20 @@ public class Contact implements Parcelable {
 
     public void setId() {
         this.id = UUID.randomUUID().toString();
+        notifyObservers();
     }
     public String getId() {
         return this.id;
     }
     public void updateId(String id) {
         this.id = id;
+        notifyObservers();
     }
 
     public void setEmail(String email) {
         this.email = email;
+        Log.v("In Contact", "Gonna notify from contact");
+        notifyObservers();
     }
     public String getEmail() {
         return this.email;
@@ -42,6 +48,7 @@ public class Contact implements Parcelable {
 
     public void setUsername(String username) {
         this.username = username;
+        notifyObservers();
     }
     public String getUsername() {
         return this.username;

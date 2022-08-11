@@ -14,18 +14,24 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Editing a pre-existing item consists of deleting the old item and adding a new item with the old
  * item's id.
+ * Note: invisible EditText is used to setError for status. For whatever reason we cannot .setError to
+ * the status Switch so instead an error is set to an "invisible" EditText.
  */
-public class EditItemActivity extends AppCompatActivity {
+public class EditItemActivity extends AppCompatActivity implements Observer {
 
     private ItemList item_list = new ItemList();
+    private ItemListController item_list_controller = new ItemListController(item_list);
+
     private Item item;
+    private ItemController item_controller;
+
     private Context context;
+
+    private ContactList contact_list = new ContactList();
+    private ContactListController contact_list_controller = new ContactListController(contact_list);
 
     private Bitmap image;
     private int REQUEST_CODE = 1;
@@ -38,11 +44,13 @@ public class EditItemActivity extends AppCompatActivity {
     private EditText width;
     private EditText height;
     private Spinner borrower_spinner;
-    private EditText invisible;
-    private ContactList contact_list=new ContactList();
-
     private TextView  borrower_tv;
     private Switch status;
+    private EditText invisible;
+
+    private ArrayAdapter<String> adapter;
+    private boolean on_create_update = false;
+    private int pos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,52 +67,24 @@ public class EditItemActivity extends AppCompatActivity {
         borrower_tv = (TextView) findViewById(R.id.borrower_tv);
         photo = (ImageView) findViewById(R.id.image_view);
         status = (Switch) findViewById(R.id.available_switch);
+        invisible = (EditText) findViewById(R.id.invisible);
 
-        context = getApplicationContext();
-        item_list.loadItems(context);
-        contact_list.loadContacts(context);
-
-        List<String> branchList = new ArrayList<>();
-
-        ArrayList<String> usernames = contact_list.getAllUsernames();
-        for (String username:usernames) {
-            branchList.add(username);
-        }
-
-        ArrayAdapter<String> branchListAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, branchList);
-        borrower_spinner.setAdapter(branchListAdapter);
+        invisible.setVisibility(View.GONE);
 
         Intent intent = getIntent(); // Get intent from ItemsFragment
-        int pos = intent.getIntExtra("position", 0);
+        pos = intent.getIntExtra("position", 0);
 
-        item = item_list.getItem(pos);
+        context = getApplicationContext();
 
-        title.setText(item.getTitle());
-        maker.setText(item.getMaker());
-        description.setText(item.getDescription());
+        item_list_controller.addObserver(this);
+        item_list_controller.loadItems(context);
 
-        Dimensions dimensions = item.getDimensions();
+        on_create_update = true;
 
-        length.setText(dimensions.getLength());
-        width.setText(dimensions.getWidth());
-        height.setText(dimensions.getHeight());
+        contact_list_controller.addObserver(this);
+        contact_list_controller.loadContacts(context);
 
-        String status_str = item.getStatus();
-        if (status_str.equals("Borrowed")) {
-            status.setChecked(false);
-            borrower_spinner.setSelection(branchList.indexOf(item.getBorrower().getUsername()));
-        } else {
-            borrower_tv.setVisibility(View.GONE);
-            //borrower.setVisibility(View.GONE);
-        }
-
-        image = item.getImage();
-        if (image != null) {
-            photo.setImageBitmap(image);
-        } else {
-            photo.setImageResource(android.R.drawable.ic_menu_gallery);
-        }
+        on_create_update = false;
     }
 
     public void addPhoto(View view) {
@@ -130,15 +110,16 @@ public class EditItemActivity extends AppCompatActivity {
     }
 
     public void deleteItem(View view) {
-        DeleteItemCommand delete_item_command = new DeleteItemCommand(item_list, item, context);
-        delete_item_command.execute();
 
-        boolean success = delete_item_command.isExecuted();
-        if (!success){
+        // Delete item
+        boolean success = item_list_controller.deleteItem(item, context);
+        if (!success) {
             return;
         }
 
         // End EditItemActivity
+        item_list_controller.removeObserver(this);
+
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
@@ -151,9 +132,12 @@ public class EditItemActivity extends AppCompatActivity {
         String length_str = length.getText().toString();
         String width_str = width.getText().toString();
         String height_str = height.getText().toString();
-        String borrower_username_str = borrower_spinner.getSelectedItem().toString();
 
-        Dimensions dimensions = new Dimensions(length_str, width_str, height_str);
+        Contact contact = null;
+        if (!status.isChecked()) {
+            String borrower_str = borrower_spinner.getSelectedItem().toString();
+            contact = contact_list_controller.getContactByUsername(borrower_str);
+        }
 
         if (title_str.equals("")) {
             title.setError("Empty field!");
@@ -185,54 +169,100 @@ public class EditItemActivity extends AppCompatActivity {
             return;
         }
 
-        //if (borrower_str.equals("") && !status.isChecked()) {
-        //    borrower.setError("Empty field!");
-        //    return;
-        //}
-
-        // Reuse the item id
-        String id = item.getId();
-
-        Item updated_item = new Item(title_str, maker_str, description_str, dimensions, image, id);
+        String id = item_controller.getId(); // Reuse the item id
+        Item updated_item = new Item(title_str, maker_str, description_str, image, id);
+        ItemController updated_item_controller = new ItemController(updated_item);
+        updated_item_controller.setDimensions(length_str, width_str, height_str);
 
         boolean checked = status.isChecked();
         if (!checked) {
-            updated_item.setStatus("Borrowed");
-            Contact borrower = contact_list.getContactByUsername(borrower_username_str);
-            updated_item.setBorrower(borrower);
+            updated_item_controller.setStatus("Borrowed");
+            updated_item_controller.setBorrower(contact);
         }
 
         // Edit item
-        EditItemCommand edit_item_command = new EditItemCommand(item_list, item, updated_item, context);
-        edit_item_command.execute();
-
-        boolean success = edit_item_command.isExecuted();
-        if (!success){
+        boolean success = item_list_controller.editItem(item, updated_item, context);
+        if (!success) {
             return;
         }
 
         // End EditItemActivity
+        item_list_controller.removeObserver(this);
+
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
-        finish();
     }
 
     /**
-     * Checked = Available
-     * Unchecked = Borrowed
+     * Checked == "Available"
+     * Unchecked == "Borrowed"
      */
     public void toggleSwitch(View view){
         if (status.isChecked()) {
-            // Means was previously borrowed
-            //borrower.setVisibility(View.GONE);
+            // Means was previously borrowed, switch was toggled to available
+            borrower_spinner.setVisibility(View.GONE);
             borrower_tv.setVisibility(View.GONE);
-            //item.setBorrower("");
-            item.setStatus("Available");
+            item_controller.setBorrower(null);
+            item_controller.setStatus("Available");
 
         } else {
-            // Means was previously available
-            borrower_spinner.setVisibility(View.VISIBLE);
-            borrower_tv.setVisibility(View.VISIBLE);
+            // Means not borrowed
+            if (contact_list.getSize()==0){
+                // No contacts, need to add contacts to be able to add a borrower
+                invisible.setEnabled(false);
+                invisible.setVisibility(View.VISIBLE);
+                invisible.requestFocus();
+                invisible.setError("No contacts available! Must add borrower to contacts.");
+                status.setChecked(true); // Set switch to available
+
+            } else {
+                // Means was previously available
+                borrower_spinner.setVisibility(View.VISIBLE);
+                borrower_tv.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    /**
+     * Only need to update the view from the onCreate method
+     */
+    public void update() {
+        if (on_create_update){
+            adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item,
+                    contact_list_controller.getAllUsernames());
+            borrower_spinner.setAdapter(adapter);
+
+            item = item_list_controller.getItem(pos);
+            item_controller = new ItemController(item);
+
+            Contact contact = item_controller.getBorrower();
+            if (contact != null){
+                int contact_pos = contact_list_controller.getIndex(contact);
+                borrower_spinner.setSelection(contact_pos);
+            }
+
+            title.setText(item_controller.getTitle());
+            maker.setText(item_controller.getMaker());
+            description.setText(item_controller.getDescription());
+
+            length.setText(item_controller.getLength());
+            width.setText(item_controller.getWidth());
+            height.setText(item_controller.getHeight());
+
+            String status_str = item_controller.getStatus();
+            if (status_str.equals("Borrowed")) {
+                status.setChecked(false);
+            } else {
+                borrower_tv.setVisibility(View.GONE);
+                borrower_spinner.setVisibility(View.GONE);
+            }
+
+            image = item_controller.getImage();
+            if (image != null) {
+                photo.setImageBitmap(image);
+            } else {
+                photo.setImageResource(android.R.drawable.ic_menu_gallery);
+            }
         }
     }
 }

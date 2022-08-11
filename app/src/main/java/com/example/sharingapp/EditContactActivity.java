@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,12 +17,19 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-public class EditContactActivity extends AppCompatActivity {
+public class EditContactActivity extends AppCompatActivity implements  Observer{
     private EditText username;
     private EditText email;
+
     private ContactList contact_list = new ContactList();
+    private ContactListController contact_list_ctlr;
     private Contact contact;
+    private ContactController contactController;
     private ArrayList<Contact> activeBorrowers;
+    private ArrayAdapter<String> adapter;
+    private boolean on_create_update = false;
+    private boolean loadedList = false;
+
     private Context context;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,25 +37,34 @@ public class EditContactActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_contact);
 
         context = getApplicationContext();
-        contact_list.loadContacts(context);
+
 
         Intent intent = getIntent(); // Get intent from ItemsFragment
         int pos = intent.getIntExtra("position", 0);
-        activeBorrowers = intent.getParcelableArrayListExtra("activeBorrowers");
-        contact = contact_list.getContact(pos);
-        contact.setUsername("wololo");
+        ArrayList<Contact> incomingParcel = intent.getParcelableArrayListExtra("activeBorrowers");
+        activeBorrowers = (incomingParcel!=null)?incomingParcel:(new ArrayList<Contact> ());
+
         username = (EditText) findViewById(R.id.username);
         email = (EditText) findViewById(R.id.email);
+        contact_list_ctlr = new ContactListController(contact_list);
 
-        //Log.v("EditContactActivity", "log username "+un);
-        username.setText(contact.getUsername());
-        email.setText(contact.getEmail());
+        on_create_update = true;
+        contact_list_ctlr.addObserver(this);
+        contact_list_ctlr.loadContacts(context);
+        loadedList = true;
+
+        on_create_update = false;
+        contact = contact_list_ctlr.getContact(pos);
+        contactController = new ContactController(contact);
+
+        Log.v("EditContactActivity", "log username ");
+        updateUI();
 
     }
 
     public boolean isUniqueContact(String username, String email, Contact currContact) {
         boolean isUnique = true;
-        ArrayList<Contact> contacts = contact_list.getContacts();
+        ArrayList<Contact> contacts = contact_list_ctlr.getContacts();
         for (Contact contact : contacts) {
             if(currContact.equals(contact))
             {
@@ -77,18 +94,15 @@ public class EditContactActivity extends AppCompatActivity {
 
         if (isUniqueContact(username_str, email_str, contact)) {
 
-            // Edit item
-            EditContactCommand edit_item_command = new EditContactCommand(contact_list, contact, username_str, email_str, context);
-            edit_item_command.execute();
-
-            boolean success = edit_item_command.isExecuted();
-            if (!success){
+            boolean success = contact_list_ctlr.editContact(contact_list, contact, username_str, email_str, context);
+            if(!success)
+            {
                 return;
             }
-
             // End EditContactActivity
             //Intent intent = new Intent(this, ContactsActivity.class);
             //startActivity(intent);
+            cleanup();
             Intent intent = new Intent(this, ContactsActivity.class);
             startActivity(intent);
             Log.v("tag", "reached here");
@@ -111,6 +125,9 @@ public class EditContactActivity extends AppCompatActivity {
         return hasBorrowed;
     }
 
+    private  void cleanup() {
+        contact_list_ctlr.removeObserver(this);
+    }
 
     public void deleteContact(View view) {
 
@@ -120,18 +137,32 @@ public class EditContactActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
             return;
         }
-        DeleteContactCommand edit_item_command = new DeleteContactCommand(contact_list, contact, context);
-        edit_item_command.execute();
-
-        boolean success = edit_item_command.isExecuted();
-        if (!success){
+        boolean success=contact_list_ctlr.deleteContact(contact_list, contact, context);
+        if(!success)
+        {
             return;
         }
 
+        cleanup();
         // End EditContactActivity
         Intent intent = new Intent(this, ContactsActivity.class);
         startActivity(intent);
         Log.v("tag", "reached here");
+
         finish();
+    }
+
+    private void updateUI()
+    {
+        username.setText(contactController.getUsername());
+        email.setText(contactController.getEmail());
+    }
+
+    @Override
+    public void update() {
+        if (on_create_update && loadedList) {
+            Log.v("tag2", "reached2 here");
+            updateUI();
+        }
     }
 }

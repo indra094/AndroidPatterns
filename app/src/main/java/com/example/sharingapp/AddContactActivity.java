@@ -18,6 +18,7 @@ public class AddContactActivity extends AppCompatActivity {
     private EditText username;
     private EditText email;
     private ContactList contact_list = new ContactList();
+    private ContactListController contact_list_ctlr;
     private Context context;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +28,8 @@ public class AddContactActivity extends AppCompatActivity {
         username = (EditText) findViewById(R.id.username);
         email = (EditText) findViewById(R.id.email);
         context = MainActivity.getContext();
-        contact_list.loadContacts(context);
+        contact_list_ctlr = new ContactListController(contact_list);
+        contact_list_ctlr.loadContacts(context);
 
         Button button= (Button) findViewById(R.id.save_button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -39,7 +41,7 @@ public class AddContactActivity extends AppCompatActivity {
 
     public boolean isUniqueContact(String username, String email) {
         boolean isUnique = true;
-        ArrayList<Contact> contacts = contact_list.getContacts();
+        ArrayList<Contact> contacts = contact_list_ctlr.getContacts();
         for (Contact contact:contacts) {
             if(contact.getUsername().equals(username) || contact.getEmail().equals(email))
             {
@@ -66,15 +68,11 @@ public class AddContactActivity extends AppCompatActivity {
 
         if(isUniqueContact(username_str, email_str)) {
             Contact contact = new Contact(username_str, email_str, null);
-
-            AddContactCommand add_contact_command = new AddContactCommand(contact_list, contact, context);
-            add_contact_command.execute();
-
-            boolean success = add_contact_command.isExecuted();
-            if (!success){
+            boolean success = contact_list_ctlr.addContact(contact, context);
+            if(!success)
+            {
                 return;
             }
-
             // End AddContactActivity
             Intent intent = new Intent(this, ContactsActivity.class);
             startActivity(intent);

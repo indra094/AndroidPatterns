@@ -169,6 +169,12 @@
             android:textAppearance="@android:style/TextAppearance.Medium"
             android:maxLength="24" />
 
+        <EditText
+            android:id="@+id/invisible"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.Medium"
+            android:maxLength="24" />
     </LinearLayout>
 
     <ImageView

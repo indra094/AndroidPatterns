@@ -1,6 +1,7 @@
 package com.example.sharingapp;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 /**
  * ItemList class
  */
-public class ItemList {
+public class ItemList extends Observable{
 
     private static ArrayList<Item> items;
     private String FILENAME = "items.sav";
@@ -28,6 +29,7 @@ public class ItemList {
 
     public void setItems(ArrayList<Item> item_list) {
         items = item_list;
+        notifyObservers();
     }
 
     public ArrayList<Item> getItems() {
@@ -36,10 +38,12 @@ public class ItemList {
 
     public void addItem(Item item) {
         items.add(item);
+        notifyObservers();
     }
 
     public void deleteItem(Item item) {
         items.remove(item);
+        notifyObservers();
     }
 
     public Item getItem(int index) {
@@ -66,6 +70,7 @@ public class ItemList {
         for (Item item:items) {
             if (item.getStatus().equals("Borrowed")) {
                 activeBorrowers.add(item.getBorrower());
+                Log.v("ItemList", "Borrower is "+item.getBorrower().getUsername());
             }
         }
         return activeBorrowers;
@@ -85,6 +90,7 @@ public class ItemList {
         } catch (IOException e) {
             items = new ArrayList<Item>();
         }
+        notifyObservers();
     }
 
     public boolean saveItems(Context context) {
