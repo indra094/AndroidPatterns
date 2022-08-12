@@ -78,20 +78,30 @@ public class EditContactActivity extends AppCompatActivity implements  Observer{
         return isUnique;
     }
 
-    public void saveContact(View view) {
+    private boolean validate() {
+        boolean isValid = true;
         String username_str = username.getText().toString();
         String email_str = email.getText().toString();
 
         if (username_str.equals("")) {
             username.setError("Empty field!");
-            return;
+            isValid=false;
+
         }
 
         if (email_str.equals("")) {
             email.setError("Empty field!");
+            isValid=false;
+        }
+        return isValid;
+    }
+
+    public void saveContact(View view) {
+        if(!validate()) {
             return;
         }
-
+        String username_str = username.getText().toString();
+        String email_str = email.getText().toString();
         if (isUniqueContact(username_str, email_str, contact)) {
 
             boolean success = contact_list_ctlr.editContact(contact_list, contact, username_str, email_str, context);

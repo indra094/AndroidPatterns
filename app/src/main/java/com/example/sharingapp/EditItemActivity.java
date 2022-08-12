@@ -126,8 +126,8 @@ public class EditItemActivity extends AppCompatActivity implements Observer {
         startActivity(intent);
     }
 
-    public void saveItem(View view) {
-
+    private boolean validateInput() {
+        boolean isValid = true;
         String title_str = title.getText().toString();
         String maker_str = maker.getText().toString();
         String description_str = description.getText().toString();
@@ -135,42 +135,55 @@ public class EditItemActivity extends AppCompatActivity implements Observer {
         String width_str = width.getText().toString();
         String height_str = height.getText().toString();
 
+
+
+        if (title_str.equals("")) {
+            title.setError("Empty field!");
+            isValid=false;
+        }
+
+        if (maker_str.equals("")) {
+            maker.setError("Empty field!");
+            isValid=false;
+        }
+
+        if (description_str.equals("")) {
+            description.setError("Empty field!");
+            isValid=false;
+        }
+
+        if (length_str.equals("")) {
+            length.setError("Empty field!");
+            isValid=false;
+        }
+
+        if (width_str.equals("")) {
+            width.setError("Empty field!");
+            isValid=false;
+        }
+
+        if (height_str.equals("")) {
+            height.setError("Empty field!");
+            isValid=false;
+        }
+        return isValid;
+    }
+
+    public void saveItem(View view) {
+        if(!validateInput()) {
+            return;
+        }
+        String title_str = title.getText().toString();
+        String maker_str = maker.getText().toString();
+        String description_str = description.getText().toString();
+        String length_str = length.getText().toString();
+        String width_str = width.getText().toString();
+        String height_str = height.getText().toString();
         Contact contact = null;
         if (!status.isChecked()) {
             String borrower_str = borrower_spinner.getSelectedItem().toString();
             contact = contact_list_controller.getContactByUsername(borrower_str);
         }
-
-        if (title_str.equals("")) {
-            title.setError("Empty field!");
-            return;
-        }
-
-        if (maker_str.equals("")) {
-            maker.setError("Empty field!");
-            return;
-        }
-
-        if (description_str.equals("")) {
-            description.setError("Empty field!");
-            return;
-        }
-
-        if (length_str.equals("")) {
-            length.setError("Empty field!");
-            return;
-        }
-
-        if (width_str.equals("")) {
-            width.setError("Empty field!");
-            return;
-        }
-
-        if (height_str.equals("")) {
-            height.setError("Empty field!");
-            return;
-        }
-
         String id = item_controller.getId(); // Reuse the item id
         Item updated_item = new Item(title_str, maker_str, description_str, image, id);
         ItemController updated_item_controller = new ItemController(updated_item);

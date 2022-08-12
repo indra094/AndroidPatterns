@@ -51,8 +51,8 @@ public class AddItemActivity extends AppCompatActivity {
         item_list_controller.loadItems(context);
     }
 
-    public void saveItem (View view) {
-
+    private boolean validate() {
+        boolean isValid = true;
         String title_str = title.getText().toString();
         String maker_str = maker.getText().toString();
         String description_str = description.getText().toString();
@@ -62,33 +62,48 @@ public class AddItemActivity extends AppCompatActivity {
 
         if (title_str.equals("")) {
             title.setError("Empty field!");
-            return;
+            isValid = false;
         }
 
         if (maker_str.equals("")) {
             maker.setError("Empty field!");
-            return;
+            isValid = false;
         }
 
         if (description_str.equals("")) {
             description.setError("Empty field!");
-            return;
+            isValid = false;
         }
 
         if (length_str.equals("")) {
             length.setError("Empty field!");
-            return;
+            isValid = false;
         }
 
         if (width_str.equals("")) {
             width.setError("Empty field!");
-            return;
+            isValid = false;
         }
 
         if (height_str.equals("")) {
             height.setError("Empty field!");
+            isValid = false;
+        }
+        return isValid;
+    }
+
+    public void saveItem (View view) {
+
+        if(!validate()) {
             return;
         }
+
+        String title_str = title.getText().toString();
+        String maker_str = maker.getText().toString();
+        String description_str = description.getText().toString();
+        String length_str = length.getText().toString();
+        String width_str = width.getText().toString();
+        String height_str = height.getText().toString();
 
         Item item = new Item(title_str, maker_str, description_str, image, null);
         ItemController item_controller = new ItemController(item);
